@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Data Form</title>
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background: #f4f7f6; margin: 0; padding: 15px; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #2c3e50; margin-top: 0; }
+        h3 { font-size: 16px; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 25px; color: #007bff; }
+        label { display: block; font-weight: bold; margin: 10px 0 5px; font-size: 14px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; background: #fafafa; }
+        input:focus, select:focus { border-color: #007bff; outline: none; background: #fff; }
+        .file-input { padding: 10px; background: #e9ecef; border: 1px dashed #aaa; cursor: pointer; }
+        .btn { width: 100%; padding: 15px; background: #28a745; color: white; border: none; border-radius: 6px; font-size: 18px; font-weight: bold; margin-top: 30px; cursor: pointer; }
+        .btn:active { background: #218838; }
+        .note { font-size: 12px; color: #666; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Student Data Entry</h2>
+    <p style="text-align:center; font-size:14px; color:#666;">Fill this form and send the downloaded JSON file back on WhatsApp.</p>
+
+    <form id="studentForm">
+        <h3>1. Personal Details</h3>
+        <label>Full Name (As per 10th Marksheet) *</label>
+        <input type="text" id="fullName" required placeholder="UMA SHANKER CHOUDHARY">
+        
+        <label>Father's Name *</label>
+        <input type="text" id="fatherName" required placeholder="SOMAI PRASAD CHAUDHARY">
+        
+        <label>Mother's Name *</label>
+        <input type="text" id="motherName" required placeholder="SAVITRI DEVI">
+        
+        <label>Date of Birth *</label>
+        <input type="date" id="dob" required>
+        
+        <label>Gender *</label>
+        <select id="gender" required>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+        </select>
+
+        <label>Category *</label>
+        <select id="category" required>
+            <option value="UR">UR / General</option>
+            <option value="OBC">OBC</option>
+            <option value="SC">SC</option>
+            <option value="ST">ST</option>
+            <option value="EWS">EWS</option>
+        </select>
+
+        <label>Marital Status</label>
+        <select id="maritalStatus">
+            <option value="Unmarried">Unmarried</option>
+            <option value="Married">Married</option>
+        </select>
+
+        <h3>2. Contact & Identity</h3>
+        <label>Mobile Number *</label>
+        <input type="tel" id="mobile" required placeholder="10-digit mobile number">
+        
+        <label>Email ID *</label>
+        <input type="email" id="email" required placeholder="example@gmail.com">
+        
+        <label>Aadhaar Number</label>
+        <input type="text" id="aadhaarNumber" placeholder="12-digit Aadhaar">
+
+        <label>Full Address</label>
+        <input type="text" id="addressLine1" placeholder="Village / House No / Street">
+        <input type="text" id="district" placeholder="District" style="margin-top: 5px;">
+        <input type="text" id="state" placeholder="State" style="margin-top: 5px;">
+        <input type="text" id="pincode" placeholder="Pincode" style="margin-top: 5px;">
+
+        <h3>3. Education</h3>
+        <label>Highest Qualification *</label>
+        <input type="text" id="highestQualification" required placeholder="e.g. B.Sc, 12th, B.Tech">
+        
+        <label>10th Roll Number</label>
+        <input type="text" id="tenthRollNumber">
+        
+        <label>12th Roll Number</label>
+        <input type="text" id="twelfthRollNumber">
+
+        <h3>4. Upload Documents (Photos)</h3>
+        <p class="note">Please take clear photos. The file size will be automatically reduced so it can be sent on WhatsApp.</p>
+        
+        <label>Your Photo</label>
+        <input type="file" id="photo" class="file-input" accept="image/*">
+        
+        <label>Your Signature</label>
+        <input type="file" id="signature" class="file-input" accept="image/*">
+        
+        <label>10th Marksheet</label>
+        <input type="file" id="tenthMarksheet" class="file-input" accept="image/*,application/pdf">
+        
+        <label>12th Marksheet</label>
+        <input type="file" id="twelfthMarksheet" class="file-input" accept="image/*,application/pdf">
+        
+        <label>Aadhaar Card</label>
+        <input type="file" id="aadhaarDoc" class="file-input" accept="image/*,application/pdf">
+
+        <button type="submit" class="btn" id="submitBtn">⬇️ Download My Data (JSON)</button>
+    </form>
+</div>
+
+<script>
+document.getElementById('studentForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const btn = document.getElementById('submitBtn');
+    btn.innerText = "Processing... Please wait...";
+    btn.disabled = true;
+
+    // Helper to convert file to Base64 (with image resizing)
+    async function processFile(fileInput) {
+        if (!fileInput.files || fileInput.files.length === 0) return null;
+        const file = fileInput.files[0];
+        
+        // If PDF, just read as base64 without resizing
+        if (file.type === 'application/pdf') {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve({ name: file.name, data: e.target.result, type: file.type });
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // If Image, resize it using Canvas to save space
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const MAX_SIZE = 1200; // max dimension
+
+                    if (width > height && width > MAX_SIZE) {
+                        height *= MAX_SIZE / width;
+                        width = MAX_SIZE;
+                    } else if (height > MAX_SIZE) {
+                        width *= MAX_SIZE / height;
+                        height = MAX_SIZE;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Compress to JPEG with 0.7 quality
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                    resolve({ name: file.name, data: dataUrl, type: 'image/jpeg' });
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Collect basic data
+    const val = (id) => document.getElementById(id).value.trim();
+    
+    const profile = {
+        id: Date.now().toString(),
+        fullName: val('fullName').toUpperCase(),
+        fatherName: val('fatherName').toUpperCase(),
+        motherName: val('motherName').toUpperCase(),
+        dob: val('dob'),
+        gender: val('gender'),
+        category: val('category'),
+        maritalStatus: val('maritalStatus'),
+        mobile: val('mobile'),
+        email: val('email'),
+        aadhaarNumber: val('aadhaarNumber'),
+        addressLine1: val('addressLine1'),
+        district: val('district'),
+        state: val('state'),
+        pincode: val('pincode'),
+        highestQualification: val('highestQualification'),
+        tenthRollNumber: val('tenthRollNumber'),
+        twelfthRollNumber: val('twelfthRollNumber'),
+        files: {}
+    };
+
+    // Process all files
+    const filesToProcess = ['photo', 'signature', 'tenthMarksheet', 'twelfthMarksheet', 'aadhaarDoc'];
+    for (const key of filesToProcess) {
+        const fileData = await processFile(document.getElementById(key));
+        if (fileData) {
+            profile.files[key] = fileData;
+        }
+    }
+
+    // Create JSON and download
+    const jsonStr = JSON.stringify(profile, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    // File name: NAME_Profile.json
+    const safeName = profile.fullName.replace(/[^a-z0-9]/gi, '_');
+    a.download = safeName + "_Profile.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    btn.innerText = "✅ Downloaded! Send this file on WhatsApp.";
+    btn.style.backgroundColor = "#007bff";
+    
+    setTimeout(() => {
+        btn.innerText = "⬇️ Download My Data (JSON)";
+        btn.style.backgroundColor = "#28a745";
+        btn.disabled = false;
+    }, 5000);
+});
+</script>
+</body>
+</html>
